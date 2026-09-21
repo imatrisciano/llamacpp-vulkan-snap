@@ -1,0 +1,74 @@
+name: llamacpp-vulkan
+base: core24
+version: '0.1'
+summary: llama.cpp with Vulkan for GPU support
+description: |
+  Host Large Language Models with hardware acceleration on Vulkan-compatible GPUs.
+
+source-code: https://github.com/imatrisciano/llamacpp-vulkan-snap
+grade: stable
+confinement: strict
+
+environment: 
+  # Directory containing vulkan ICD files
+  VULKAN_ICD_PATH: $SNAP/usr/share/vulkan/icd.d
+
+parts:
+  scripts:
+    source: scripts
+    plugin: dump
+    organize:
+      "loader.sh": bin/loader.sh
+
+  # Installs /usr/share/vulkan/icd.d, and the required shared objects. 
+  # Snapcraft's library linter will report those as unused libraries, 
+  #  that's not true as those are referenced in the ICD files.
+  # May be replaced by the "vulkan-driver-libs" interface once it is 
+  #  available for non-system snaps.
+  vulkan-drivers:
+    plugin: nil
+    stage-packages:
+      - mesa-vulkan-drivers
+
+  llamacpp:
+    source: https://github.com/ggml-org/llama.cpp.git
+    source-tag: v0.4.1
+    plugin: cmake
+    cmake-parameters:
+      - -DGGML_VULKAN=1
+      - -DGGML_NATIVE=OFF
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DLLAMA_BUILD_TESTS=OFF
+      - -DLLAMA_BUILD_EXAMPLES=OFF 
+      - -DLLAMA_BUILD_TOOLS=ON 
+      - -DLLAMA_BUILD_SERVER=ON
+    build-packages:
+      - libvulkan-dev
+      - glslc
+      - spirv-headers
+    stage-packages:
+      - libgomp1
+      - libvulkan1
+    organize:
+      usr/local/bin: bin
+      usr/local/lib: lib
+    prime:
+      - -usr/local/include
+
+apps:
+  llamacpp-vulkan:
+    command-chain:
+      - bin/loader.sh
+    command: bin/llama-server
+    plugs:
+      - network-bind
+      - opengl
+      - home
+
+  llama-bench:
+    command-chain:
+      - bin/loader.sh
+    command: bin/llama-bench
+    plugs:
+      - opengl
+      - home

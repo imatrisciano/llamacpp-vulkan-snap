@@ -13,6 +13,11 @@ environment:
   # Directory containing vulkan ICD files
   VULKAN_ICD_PATH: $SNAP/usr/share/vulkan/icd.d
 
+lint:
+  ignore:
+    - library:
+      - usr/lib/**/*.so*
+
 parts:
   scripts:
     source: scripts

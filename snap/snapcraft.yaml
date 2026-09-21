@@ -1,6 +1,6 @@
 name: llamacpp-vulkan
 base: core24
-version: '0.1'
+version: 'v0.4.1'
 summary: llama.cpp with Vulkan for GPU support
 description: |
   Host Large Language Models with hardware acceleration on Vulkan-compatible GPUs.
